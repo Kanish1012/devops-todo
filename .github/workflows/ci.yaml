@@ -5,8 +5,13 @@ on:
         branches: [main]
 
 jobs:
-    mongo-init:
+    backend-test:
         runs-on: ubuntu-latest
+
+        env:
+            PORT: ${{ secrets.PORT }}
+            MONGO_URI: ${{ secrets.MONGO_URI }}
+            JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
         services:
             mongodb:
@@ -23,7 +28,7 @@ jobs:
               with:
                   node-version: "18"
 
-            - name: Waiting for MongoDB to be ready
+            - name: Wait for MongoDB
               run: |
                   until nc -z localhost 27017; do
                     echo "Waiting for MongoDB..."
@@ -31,34 +36,14 @@ jobs:
                   done
                   echo "MongoDB is up"
 
-            - name: Seed MongoDB
-              working-directory: ./backend
-              run: |
-                  npm install
-                  node seedTasksData.js
-
-    test:
-        runs-on: ubuntu-latest
-        needs: mongo-init
-
-        env:
-            PORT: ${{secrets.PORT}}
-            MONGO_URI: ${{secrets.MONGO_URI}}
-            JWT_SECRET: ${{secrets.JWT_SECRET}}
-
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "18"
-
-            - name: Install dependencies for backend
+            - name: Install dependencies
               working-directory: ./backend
               run: npm install
 
-            - name: Running backend test
+            - name: Seed MongoDB
+              working-directory: ./backend
+              run: node seedTasksData.js
+
+            - name: Run backend tests
               working-directory: ./backend
               run: npm test
