@@ -39,6 +39,7 @@ jobs:
 
     test:
         runs-on: ubuntu-latest
+        needs: mongo-init
 
         steps:
             - name: Checkout Repository
@@ -48,9 +49,11 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: "18"
-            
+
             - name: Install dependencies for backend
+              working-directory: ./backend
               run: npm install
 
-            - name: Runnning backend test
+            - name: Running backend test
+              working-directory: ./backend
               run: npm test
